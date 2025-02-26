@@ -1,0 +1,60 @@
+---
+definitions:
+  - skill: &ScrollWordExporter
+      type: exporter
+      name: scrollword-exporter
+      params:
+        api_url: https://scroll-word-exporter/url
+        auth_token: env.SWE_AUTH_TOKEN
+        poll_interval: 2
+        export_folder: ~/Downloads/sw_export_temp
+
+  - skill: &AzureDocumentIntelligence
+      type: file-reader
+      name: azure-document-intelligence
+      params:
+        api_key: env.AZURE_DOCUMENT_INTELLIGENCE_API_KEY
+        endpoint: https://test-az-di.azure.com
+
+  - skill: &AzureAda002
+      type: embedding
+      name: azure-ada002-embedding
+      params:
+        endpoint: https://test-embedding.openai.azure.com
+        api_key: env.AZURE_EMBEDDING_API_KEY
+        api_version: 2024-02-15-preview
+        deployment_name: text-embedding-ada-002
+
+  - skill: &AzureAISearchId
+      type: vector-store
+      name: azure-ai-search
+      params:
+        api_key: env.AZURE_AI_SEARCH_API_KEY
+        endpoint: https://test-search.search.windows.net
+        index_name: knowledge-for-copilot
+
+  - skill: &AzureBlobStoreId
+      type: uploader
+      name: AzureBlobStore
+      params:
+        blob_path: dp-genai
+        container_name: temp-test-paclouve
+        storage_url: https://test.blob.core.windows.net
+
+  - skillset: &ConfluenceParserSkillSet
+      - *ScrollWordExporter
+      - *AzureDocumentIntelligence
+      - *AzureAda002
+
+  - skillset: &TestSkillset
+      - *ScrollWordExporter
+      - *AzureDocumentIntelligence
+      - *AzureAda002
+      - *AzureAISearchId
+
+  - skillset: &ExportAndUpload
+      - *ScrollWordExporter
+
+indexer:
+    id: AzureAISearchIndexer
+    skillset: *TestSkillset

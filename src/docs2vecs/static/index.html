@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documents Vector Database UI</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="connection-section">
+            <label for="connection-url">Connection URL:</label>
+            <input type="text" id="connection-url" value="http://localhost:8008">
+        </div>
+
+        <div class="main-content">
+            <div class="collections-panel">
+                <div class="collections-header">
+                    <h2>Collections</h2>
+                    <button id="refresh-btn">Refresh</button>
+                </div>
+                <div id="collections-list"></div>
+            </div>
+
+            <div class="documents-panel">
+                <h2>Documents</h2>
+                <h3>Knn search</h3>
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="Enter search query...">
+                    <input type="number" id="knn-input" value="3" min="1" max="100">
+                    <button id="search-btn">Search</button>
+                </div>
+                <div id="documents-content"></div>
+            </div>
+        </div>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+integrated_vec:
+  id: AzureAISearchIndexer
+  skill:
+    type: integrated_vec
+    name: AzureAISearchIntegratedVectorization
+    params:
+        search_ai_api_key: env.AZURE_AI_SEARCH_API_KEY
+        search_ai_endpoint: https://search-we-tst-air-01-dev-ds-1a-bdpdraft.search.windows.net
+        index_name: genai-initiatives
+        indexer_name: genai-initiatives-indexer
+        skillset_name: genai-initiatives-skillset
+        data_source_connection_string: ResourceId=/subscriptions/73cbde61-61fb-4d35-88e9-4aef7ab0c415/resourceGroups/rg-we-tst-air-01-dev-ds-1a-bdpdraft/providers/Microsoft.Storage/storageAccounts/stwetstair01devds1abdpdr;
+        data_source_connection_name: genai-intiatives-datasource-connection
+        container_name: cne-genai-poc
+        encryption_key: env.AZURE_AI_SEARCH_ENCRYPTION_KEY
+        embedding_endpoint: https://cs-openai-we-tst-air-01-dev-ds-1a-bdpdraft.openai.azure.com
+        embedding_deployment_name: text-embedding-ada-002

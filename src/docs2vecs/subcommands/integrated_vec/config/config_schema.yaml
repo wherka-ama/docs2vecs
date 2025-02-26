@@ -1,0 +1,54 @@
+integrated_vec:
+  type: dict
+  schema:
+    id:
+      type: string
+      required: True
+    skill:
+      type: dict
+      schema:
+        type:
+          type: string
+          required: True
+          allowed: ['integrated_vec']
+        name:
+          type: string
+          required: True
+        params:
+          type: dict
+          schema:
+            search_ai_api_key:
+              type: string
+              required: True
+            search_ai_endpoint:
+              type: string
+              required: True
+              regex: '^http.*'
+            index_name:
+              type: string
+              required: True
+            indexer_name:
+              type: string
+              required: True
+            skillset_name:
+              type: string
+              required: True
+            data_source_connection_string:
+              type: string
+              required: True
+            data_source_connection_name:
+              type: string
+              required: True
+            container_name:
+              type: string
+              required: True
+            encryption_key:
+              type: string
+              required: True
+            embedding_endpoint:
+              type: string
+              required: True
+              regex: '^http.*'
+            embedding_deployment_name:
+              type: string
+              required: True
