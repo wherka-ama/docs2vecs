@@ -60,7 +60,7 @@ Please check the [detailed skills documentation](docs/readme/indexer-skills.md).
 
 The config yaml file is validated against [this schema](./src/docs2vecs/subcommands/indexer/config/config_schema.yaml).
 
-Please check this [sample config file](resources/example_data/indexer-config-example.yml).
+Please check this [sample config file](docs/readme/sample-config-file.yml).
 </details>
 
 <details><summary>Expand me if you would like to find out how to chat with your data</summary>
