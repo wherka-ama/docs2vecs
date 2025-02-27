@@ -8,10 +8,13 @@ For these applications, `docs2vecs` simplifies the entire process:
 * Data ingestion: Use the `indexer` to run the data ingestion pipeline: data retrieval, chunking, embedding, and storing resulting vectors in a Vector DB.
 * Build proof of concepts: `docs2vecs` allows you to quickly create a RAG prototype by using a local ChromaDB as vector store and a `server` mode to chat with your data.
 
+
+The `docs2vecs` project is managed with [uv](https://docs.astral.sh/uv/).
+
 # Usage
 You can use `docs2vecs` in two ways:
 1. Install locally from source - recommended method for now
-2. Run from Docker/Podman image. Because the Docker/Podman image is hosted in github under XDLC, you might face some issues when pulling the image.
+2. Run from Docker/Podman image.
 
 ## Run locally from source
 ```sh
@@ -35,7 +38,7 @@ TODO: add instructions to run docs2vecs using a docker/podman image
 The `indexer` sub-command runs an indexer pipeline configured in a config file. This is usually used when you have a lot of data to vectorize and want to run it in a batch.
 
 ```bash
-docs2vecs indexer --help
+uv run --directory src docs2vecs indexer --help
 
 usage: docs2vecs indexer [-h] --config CONFIG [--env ENV]
 options:
@@ -50,7 +53,7 @@ In the config file you'll need to define a list of skills, a skillset, and an in
 Example:
 
 ```bash
-docs2vecs indexer --config ~/Downloads/sw_export_temp/config/confluence_process.yml --env ~/indexer.env
+uv run --directory src docs2vecs indexer --config ~/Downloads/sw_export_temp/config/confluence_process.yml --env ~/indexer.env
 ```
 
 Please check the [detailed skills documentation](docs/readme/indexer-skills.md).
@@ -58,7 +61,40 @@ Please check the [detailed skills documentation](docs/readme/indexer-skills.md).
 The config yaml file is validated against [this schema](./src/docs2vecs/subcommands/indexer/config/config_schema.yaml).
 
 Please check this [sample config file](resources/example_data/indexer-config-example.yml).
+</details>
 
+<details><summary>Expand me if you would like to find out how to chat with your data</summary>
+
+## Server sub-command
+
+If you previously indexed your data (refer to the previous section) and stored the outputted embeddings in a local ChromaDB, you can chat with your data using the `server` sub-command.
+
+```bash
+uv run --directory src docs2vecs server --help
+
+usage: docs2vecs server [-h] [--host HOST] [--port PORT] [--model MODEL] [--cache_dir CACHE_DIR] [--path PATH]
+                        [--workers WORKERS] [--log_level LOG_LEVEL] [--env ENV]
+
+options:
+  -h, --help            show this help message and exit
+  --host HOST           A host for the server.
+  --port PORT           A port for the server.
+  --model MODEL         A name of the embedding model(as per huggingface coordinates).
+  --cache_dir CACHE_DIR
+                        A path to the cache directory.
+  --path PATH           A path for the server.
+  --workers WORKERS     Number of workers for the server.
+  --log_level LOG_LEVEL
+                        Log level for the server.
+  --env ENV             Environment file to load.
+```
+By default, the host is `localhost` and the port is `8008`.
+
+Example:
+```bash
+uv run --directory src docs2vecs server --path path/to/where/your/chroma/db/is
+```
+By then typing `http://localhost:8008/` in your browser, you sould be able to see the embedding collections stored in your vector store and perform Knn search based on user query. You can modify the K number of nearest neighbours returned by the semantic search.
 </details>
 
 
@@ -68,7 +104,7 @@ Please check this [sample config file](resources/example_data/indexer-config-exa
 `integrated_vec` - Run an integrated vectorization pipeline configured in a config file.
 
 ```bash
-docs2vecs integrated_vec --help
+uv run --directory src docs2vecs integrated_vec --help
 
 usage: docs2vecs integrated_vec [-h] --config CONFIG [--env ENV]
 options:
@@ -79,7 +115,7 @@ options:
 Example:
 
 ```bash
-docs2vecs integrated_vec --config ~/Downloads/sw_export_temp/config/config.yaml --env ~/integrated_vec .env
+uv run --directory src docs2vecs integrated_vec --config ~/Downloads/sw_export_temp/config/config.yaml --env ~/integrated_vec .env
 ```
 
 The config yaml file is validated against [this schema](./src/docs2vecs/subcommands/integrated_vec/config/config_schema.yaml).
@@ -106,7 +142,6 @@ integrated_vec:
             container_name: your_container_name
 
 ```
-
 </details>
 
 ## Important note:
