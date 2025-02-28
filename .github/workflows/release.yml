@@ -1,0 +1,59 @@
+name: Release
+
+on:
+    workflow_dispatch: 
+permissions:
+    pull-requests: read
+    contents: read
+
+jobs:
+    generate-release-version:
+        runs-on: ubuntu-latest
+        outputs:
+            generated_version: ${{ steps.output-generated-version.outputs.generated_version }}
+        permissions:
+            contents: write
+            id-token: write
+        steps:
+        -
+            name: Checkout
+            uses: actions/checkout@v4
+            with:
+                fetch-depth: 0
+        -
+            name: Generate next version
+            uses: paulhatch/semantic-version@v5.4.0
+            id: semantic-version
+            with:
+                tag_prefix: 'v'
+                major_pattern: "/((BREAKING CHANGE|BREAKING|breaking|MAJOR|major):?|\\S*!).*/"
+                minor_pattern: '/(FEATURE|feature|MINOR|minor|FEAT|feat):?[^!].*/'
+                version_format: '${major}.${minor}.${patch}'
+        -
+            name: Output generated version
+            id: output-generated-version
+            run: |
+                echo "generated_version=${{ steps.semantic-version.outputs.version }}" >> $GITHUB_OUTPUT
+
+    docker-image-release:
+        needs: [generate-release-version]
+        runs-on: ubuntu-latest
+        steps:
+            - 
+                name: Dummy step
+                run: |
+                    echo "Using version: ${{ needs.generate-release-version.outputs.generated_version }}"
+
+    create-release:
+        permissions:
+            contents: write
+            issues: write
+            pull-requests: write
+
+        needs: [generate-release-version, docker-image-release]
+        runs-on: ubuntu-latest
+        steps:
+            - 
+                name: Dummy release step
+                run: |
+                    echo "creating release, with version: ${{ needs.generate-release-version.outputs.generated_version }}"
