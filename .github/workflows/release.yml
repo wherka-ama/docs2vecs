@@ -6,11 +6,16 @@ permissions:
     pull-requests: read
     contents: read
 
+env:
+    OCI_REGISTRY: ghcr.io
+
 jobs:
     generate-release-version:
         runs-on: ubuntu-latest
         outputs:
             generated_version: ${{ steps.output-generated-version.outputs.generated_version }}
+            image_tag: ${{ steps.generate_tag.outputs.image_tag }}
+            tag_prefix: ${{ steps.generate_tag.outputs.tag_prefix }}
         permissions:
             contents: write
             id-token: write
@@ -35,25 +40,107 @@ jobs:
             run: |
                 echo "generated_version=${{ steps.semantic-version.outputs.version }}" >> $GITHUB_OUTPUT
 
+        - 
+            name: Version tag ${{ steps.semantic-version.outputs.version }} on main branch
+            if: ${{ github.ref == 'refs/heads/main' }}
+            shell: bash
+            run: |
+                echo "generated_tag=${{ steps.semantic-version.outputs.version }}" >> $GITHUB_ENV
+                echo "GITHUB_REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
+                echo "tag_prefix=v" >> $GITHUB_ENV
+    
+        - 
+            name: Version tag ${{ steps.semantic-version.outputs.version }} on pull request
+            if: ${{ github.event_name == 'pull_request' }}
+            shell: bash
+            run: |
+                echo "generated_tag=pr-${{github.event.pull_request.number}}-${{ steps.semantic-version.outputs.version }}-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+                echo "GITHUB_REPO=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+                echo "tag_prefix=" >> $GITHUB_ENV
+    
+        - 
+            name: Compute image tag based on version tag ${{ env.generated_tag }}
+            id: generate_tag
+            shell: bash
+            run: |
+                echo "image_tag=${{ env.OCI_REGISTRY }}/${{ github.repository }}:${{ env.generated_tag }}" >> $GITHUB_OUTPUT
+
     docker-image-release:
         needs: [generate-release-version]
-        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        permissions:
+            contents: read
+            packages: write
+            id-token: write
+        strategy:
+          fail-fast: false
+          matrix:
+            os: [ubuntu-24.04, ubuntu-24.04-arm]
+        runs-on: ${{ matrix.os }}
         steps:
-            - 
-                name: Dummy step
-                run: |
-                    echo "Using version: ${{ needs.generate-release-version.outputs.generated_version }}"
+          - 
+            uses: actions/checkout@v4
+          - 
+            uses: docker/setup-docker-action@v4.1.0
+          - 
+            name: Login to GitHub Container Registry
+            uses: docker/login-action@v3
+            with:
+                registry: ${{ env.OCI_REGISTRY }}
+                username: ${{ github.actor }}
+                password: ${{ secrets.GITHUB_TOKEN }}
+          - 
+            name: Build image for ${{ matrix.os }}
+            run: |
+              docker build --tag ${{ needs.generate-release-version.outputs.image_tag }}-${{ runner.arch }} .
+              docker images
+              docker run -i ${{ needs.generate-release-version.outputs.image_tag }}-${{ runner.arch }} -h
+              docker image inspect ${{ needs.generate-release-version.outputs.image_tag }}-${{ runner.arch }}
+              docker push ${{ needs.generate-release-version.outputs.image_tag }}-${{ runner.arch }}
 
     create-release:
         permissions:
+            packages: write
+            id-token: write
             contents: write
             issues: write
             pull-requests: write
 
         needs: [generate-release-version, docker-image-release]
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         steps:
-            - 
-                name: Dummy release step
-                run: |
-                    echo "creating release, with version: ${{ needs.generate-release-version.outputs.generated_version }}"
+          - 
+            uses: docker/setup-docker-action@v4.1.0
+          - 
+            name: Login to GitHub Container Registry
+            uses: docker/login-action@v3
+            with:
+                registry: ${{ env.OCI_REGISTRY }}
+                username: ${{ github.actor }}
+                password: ${{ secrets.GITHUB_TOKEN }}
+          -
+            name: Build manifest and push it registry
+            run: |
+              docker manifest create \
+              ${{ needs.generate-release-version.outputs.image_tag }} \
+              --amend ${{ needs.generate-release-version.outputs.image_tag }}-X64 \
+              --amend ${{ needs.generate-release-version.outputs.image_tag }}-ARM64
+              docker manifest push ${{ needs.generate-release-version.outputs.image_tag }}
+              docker manifest inspect ${{ needs.generate-release-version.outputs.image_tag }}
+          -
+            name: Release
+            if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+            env:
+                GH_TOKEN: ${{ github.token }}
+            run: |
+                sha=$(git rev-parse --short HEAD)
+                tag_value=${{ needs.generate-release-version.outputs.generated_version }}
+                if [ -z "${{ needs.generate-release-version.outputs.tag_prefix }}" ]; then
+                    tag_value+="${{ github.ref_name }}-${sha}"
+                else
+                    tag_value="${{ needs.generate-release-version.outputs.tag_prefix }}${{ needs.generate-release-version.outputs.generated_version }}"
+                fi
+                gh release create "${tag_value}" \
+                    --title "Release ${tag_value} @ ${sha}" \
+                    --generate-notes \
+                    --repo ${{ github.repository }}
