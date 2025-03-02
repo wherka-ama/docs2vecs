@@ -98,9 +98,14 @@ jobs:
               docker images
               docker run -i ${{ needs.generate-release-version.outputs.image_tag }}-${{ runner.arch }} -h
               docker image inspect ${{ needs.generate-release-version.outputs.image_tag }}-${{ runner.arch }}
+          -
+            name: Push image for ${{ matrix.os }}
+            if: github.event_name != 'pull_request'
+            run: |
               docker push ${{ needs.generate-release-version.outputs.image_tag }}-${{ runner.arch }}
 
     create-release:
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         permissions:
             packages: write
             id-token: write
@@ -133,7 +138,6 @@ jobs:
               docker manifest inspect ${{ needs.generate-release-version.outputs.image_tag }}
           -
             name: Release
-            if: github.event_name == 'push' && github.ref == 'refs/heads/main'
             env:
                 GH_TOKEN: ${{ github.token }}
             run: |
@@ -145,6 +149,6 @@ jobs:
                     tag_value="${{ needs.generate-release-version.outputs.tag_prefix }}${{ needs.generate-release-version.outputs.generated_version }}"
                 fi
                 gh release create "${tag_value}" \
-                    --title "Release ${tag_value} @ ${sha}" \
+                    --title "Release ${tag_value}" \
                     --generate-notes \
                     --repo ${{ github.repository }}
