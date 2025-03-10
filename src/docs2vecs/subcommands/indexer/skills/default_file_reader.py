@@ -58,6 +58,7 @@ class DefaultFileReader(FileLoaderSkill):
         result = []
         for doc in documents:
             file_path = Path(doc.filename)
+            file_tag = doc.tag
             if not file_path.exists():
                 self.logger.info(f"File not found: {file_path}")
                 continue
@@ -71,6 +72,8 @@ class DefaultFileReader(FileLoaderSkill):
 
             try:
                 loaded_docs = handler(file_path)
+                for loaded_doc in loaded_docs:
+                    loaded_doc.tag = file_tag
                 result.extend(loaded_docs)
                 self.logger.info(f"Successfully read file: {file_path}")
             except Exception as e:

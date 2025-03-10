@@ -18,6 +18,9 @@ definitions:
             type: dict
             required: False
             schema:
+              tag:
+                type: string
+                required: False
               api_url:
                 type: string
                 regex: '^http.*'
@@ -119,6 +122,9 @@ definitions:
               field_mapping:
                 type: dict
                 schema:
+                  tag:
+                    type: string
+                    required: False
                   document_id:
                     type: string
                     required: False
