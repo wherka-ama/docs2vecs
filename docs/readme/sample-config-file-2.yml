@@ -1,0 +1,42 @@
+definitions:
+  - skill: &FileScanner
+      type: file-scanner
+      name: multi-file-scanner
+      params:
+        path: /path/to/files/to/scan/
+        recursive: false
+
+  - skill: &FileReader
+      type: file-reader
+      name: multi-file-reader
+
+  - skill: &SemanticSplitter
+      type: splitter
+      name: semantic-splitter
+      params:
+        embedding_model:
+          endpoint: https://endpoint.openai.azure.com
+          api_key: env.AZURE_EMBEDDING_KEY
+          api_version: "api_version_here"
+          deployment_name: deployment_name_here
+
+  - skill: &FastEmbed
+      type: embedding
+      name: llama-fastembed
+
+  - skill: &ChromaDbVectorStore
+      type: vector-store
+      name: chromadb
+      params:
+        db_path: /path/to/your/Chroma/db
+        collection_name: semantic-split
+
+  - skillset: &MySkillset
+      - *FileScanner
+      - *FileReader
+      - *SemanticSplitter
+      - *FastEmbed
+      - *ChromaDbVectorStore
+
+indexer:
+  skillset: *MySkillset
