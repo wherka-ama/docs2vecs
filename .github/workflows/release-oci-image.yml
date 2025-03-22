@@ -1,7 +1,24 @@
 name: Release
 
 on:
-    [ workflow_dispatch, push, pull_request ]
+  push:
+    tags:
+    - v*
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+  # workflow_dispatch:
+  #   inputs:
+  #     tag:
+  #       description: 'Tag to create'
+  #       required: true
+  #       default: 'v0.0.0'
+  #     version:
+  #       description: 'Version to create'
+  #       required: true
+  #       default: '0.0.0'
 permissions:
     pull-requests: read
     contents: read
@@ -15,6 +32,7 @@ jobs:
         outputs:
             generated_version: ${{ steps.output-generated-version.outputs.generated_version }}
             image_tag: ${{ steps.generate_tag.outputs.image_tag }}
+            image_tag_latest: ${{ steps.output-generated-version.outputs.image_tag_latest }}
             tag_prefix: ${{ steps.generate_tag.outputs.tag_prefix }}
         permissions:
             contents: write
@@ -39,6 +57,7 @@ jobs:
             id: output-generated-version
             run: |
                 echo "generated_version=${{ steps.semantic-version.outputs.version }}" >> $GITHUB_OUTPUT
+                echo "image_tag_latest=${{ env.OCI_REGISTRY }}/${repo_name}:latest" >> $GITHUB_OUTPUT
 
         - 
             name: Version tag ${{ steps.semantic-version.outputs.version }} on main branch
@@ -100,12 +119,12 @@ jobs:
               docker image inspect ${{ needs.generate-release-version.outputs.image_tag }}-${{ runner.arch }}
           -
             name: Push image for ${{ matrix.os }}
-            if: github.event_name != 'pull_request'
+            if: github.event_name == 'tag' && startsWith(github.ref, 'refs/tags/v')
             run: |
               docker push ${{ needs.generate-release-version.outputs.image_tag }}-${{ runner.arch }}
 
     create-image-release:
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'tag' && startsWith(github.ref, 'refs/tags/v')
         permissions:
             packages: write
             id-token: write
@@ -136,3 +155,11 @@ jobs:
               --amend ${{ needs.generate-release-version.outputs.image_tag }}-ARM64
               docker manifest push ${{ needs.generate-release-version.outputs.image_tag }}
               docker manifest inspect ${{ needs.generate-release-version.outputs.image_tag }}
+
+              docker manifest create \
+              ${{ needs.generate-release-version.outputs.image_tag_latest }} \
+              --amend ${{ needs.generate-release-version.outputs.image_tag_latest }}-X64 \
+              --amend ${{ needs.generate-release-version.outputs.image_tag_latest }}-ARM64
+              docker manifest push ${{ needs.generate-release-version.outputs.image_tag_latest }}
+              docker manifest inspect ${{ needs.generate-release-version.outputs.image_tag_latest }}
+              
