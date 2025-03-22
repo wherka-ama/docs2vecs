@@ -104,7 +104,7 @@ jobs:
             run: |
               docker push ${{ needs.generate-release-version.outputs.image_tag }}-${{ runner.arch }}
 
-    create-release:
+    create-image-release:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         permissions:
             packages: write
@@ -136,19 +136,3 @@ jobs:
               --amend ${{ needs.generate-release-version.outputs.image_tag }}-ARM64
               docker manifest push ${{ needs.generate-release-version.outputs.image_tag }}
               docker manifest inspect ${{ needs.generate-release-version.outputs.image_tag }}
-          -
-            name: Release
-            env:
-                GH_TOKEN: ${{ github.token }}
-            run: |
-                sha=$(git rev-parse --short HEAD)
-                tag_value=${{ needs.generate-release-version.outputs.generated_version }}
-                if [ -z "${{ needs.generate-release-version.outputs.tag_prefix }}" ]; then
-                    tag_value+="${{ github.ref_name }}-${sha}"
-                else
-                    tag_value="${{ needs.generate-release-version.outputs.tag_prefix }}${{ needs.generate-release-version.outputs.generated_version }}"
-                fi
-                gh release create "${tag_value}" \
-                    --title "Release ${tag_value}" \
-                    --generate-notes \
-                    --repo ${{ github.repository }}
