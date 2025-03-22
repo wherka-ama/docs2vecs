@@ -1,10 +1,11 @@
 [project]
 name = "docs2vecs"
-version = "0.1.0"
-description = "Add your description here"
+dynamic = ["version"]
+description = "A library/cli that allows you to vectorize your data, enabling you to create RAG powered applications."
 readme = "README.md"
 authors = [
-    { name = "Dorin POMIAN", email = "dorin.pomian@amadeus.com" }
+    { name = "Dorin POMIAN", email = "dorin.pomian@amadeus.com" },
+    { name = "Waldek HERKA", email = "waldek.herka@amadeus.com" }
 ]
 requires-python = ">=3.11"
 dependencies = [
@@ -37,6 +38,20 @@ dependencies = [
 [project.scripts]
 docs2vecs = "docs2vecs:main"
 
+
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.24.2", "hatch-vcs>=0.3.0"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+version_scheme = "python-simplified-semver"
+local_scheme = "no-local-version"
+parentdir_prefix_version = "v"
+git_describe_command = ["git", "describe", "--dirty", "--tags", "--long", "--match", "v*"]
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/docs2vecs/_version.py"
+

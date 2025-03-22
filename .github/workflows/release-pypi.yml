@@ -1,6 +1,14 @@
 name: Publish Python 🐍 distribution 📦 to PyPI and TestPyPI
 
-on: push
+on:
+  push:
+    tags:
+    - v*
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
 
 jobs:
   build:
@@ -20,13 +28,13 @@ jobs:
         python-version: "3.x"
     - name: Install pypa/build
       run: >-
-        python3 -m pip install build setuptools setuptools_scm toml-cli --user
+        python3 -m pip install build hatchling hatch-vcs --user
     - name: Build a binary wheel and a source tarball
       id: build_artifacts
       run: |
         python3 -m build
-        package_name=$(toml get --toml-path pyproject.toml project.name)
-        package_version=$(toml get --toml-path pyproject.toml project.version)
+        package_name=$(hatchling metadata name)
+        package_version=$(hatchling version)
         echo "package_name=$package_name" >> $GITHUB_OUTPUT
         echo "package_version=$package_version" >> $GITHUB_OUTPUT
     - name: Store the distribution packages
@@ -109,6 +117,8 @@ jobs:
 
   publish-to-testpypi:
     name: Publish Python 🐍 distribution 📦 to TestPyPI
+    # we only publish to TestPyPI on tag pushes or merge to main
+    if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
     needs:
     - build
     runs-on: ubuntu-latest
