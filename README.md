@@ -12,9 +12,21 @@ For these applications, `docs2vecs` simplifies the entire process:
 The `docs2vecs` project is managed with [uv](https://docs.astral.sh/uv/).
 
 # Usage
-You can use `docs2vecs` in two ways:
-1. Install locally from source - recommended method for now
+You can use `docs2vecs` in three ways:
+1. Install from PyPI
+2. Install locally from source
 2. Run from Docker/Podman image.
+
+## Install from PyPI
+You can install `docs2vecs` from PyPI using pip:
+```sh
+pip install docs2vecs
+```
+or
+```sh
+pip install docs2vecs[all]
+```
+to install all the extra dependencies.
 
 ## Run locally from source
 ```sh

@@ -60,8 +60,8 @@ jobs:
                 echo "image_tag_latest=${{ env.OCI_REGISTRY }}/${repo_name}:latest" >> $GITHUB_OUTPUT
 
         - 
-            name: Version tag ${{ steps.semantic-version.outputs.version }} on main branch
-            if: ${{ github.ref == 'refs/heads/main' }}
+            name: Version tag ${{ steps.semantic-version.outputs.version }} on main branch or tag
+            if: ${{ github.ref == 'refs/heads/main' }} || startsWith(github.ref, 'refs/tags/v')
             shell: bash
             run: |
                 echo "generated_tag=${{ steps.semantic-version.outputs.version }}" >> $GITHUB_ENV
