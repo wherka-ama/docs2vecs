@@ -32,7 +32,7 @@ jobs:
         outputs:
             generated_version: ${{ steps.output-generated-version.outputs.generated_version }}
             image_tag: ${{ steps.generate_tag.outputs.image_tag }}
-            image_tag_latest: ${{ steps.output-generated-version.outputs.image_tag_latest }}
+            image_tag_latest: ${{ steps.generate_tag.outputs.image_tag_latest }}
             tag_prefix: ${{ steps.generate_tag.outputs.tag_prefix }}
         permissions:
             contents: write
@@ -57,7 +57,6 @@ jobs:
             id: output-generated-version
             run: |
                 echo "generated_version=${{ steps.semantic-version.outputs.version }}" >> $GITHUB_OUTPUT
-                echo "image_tag_latest=${{ env.OCI_REGISTRY }}/${repo_name}:latest" >> $GITHUB_OUTPUT
 
         - 
             name: Version tag ${{ steps.semantic-version.outputs.version }} on main branch or tag
@@ -85,6 +84,7 @@ jobs:
                 # image tag needs to be all lower case
                 repo_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
                 echo "image_tag=${{ env.OCI_REGISTRY }}/${repo_name}:${{ env.generated_tag }}" >> $GITHUB_OUTPUT
+                echo "image_tag_latest=${{ env.OCI_REGISTRY }}/${repo_name}:latest" >> $GITHUB_OUTPUT
 
     docker-image-release:
         needs: [generate-release-version]
