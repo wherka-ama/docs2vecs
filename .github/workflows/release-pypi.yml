@@ -96,12 +96,14 @@ jobs:
         gh release delete
         "$GITHUB_REF_NAME"
         --repo "$GITHUB_REPOSITORY"
+        --cleanup-tag
+        --yes
     - name: Create GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
       run: |
         gh release create "$GITHUB_REF_NAME" \
-          --title "Release "$GITHUB_REF_NAME" \
+          --title "Release $GITHUB_REF_NAME" \
           --generate-notes \
           --repo "$GITHUB_REPOSITORY"
     - name: Upload artifact signatures to GitHub Release
