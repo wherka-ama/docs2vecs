@@ -42,6 +42,7 @@ jobs:
             name: Checkout
             uses: actions/checkout@v4
             with:
+                fetch-tags: true
                 fetch-depth: 0
         -
             name: Generate next version
@@ -158,8 +159,8 @@ jobs:
 
               docker manifest create \
               ${{ needs.generate-release-version.outputs.image_tag_latest }} \
-              --amend ${{ needs.generate-release-version.outputs.image_tag_latest }}-X64 \
-              --amend ${{ needs.generate-release-version.outputs.image_tag_latest }}-ARM64
+              --amend ${{ needs.generate-release-version.outputs.image_tag }}-X64 \
+              --amend ${{ needs.generate-release-version.outputs.image_tag }}-ARM64
               docker manifest push ${{ needs.generate-release-version.outputs.image_tag_latest }}
               docker manifest inspect ${{ needs.generate-release-version.outputs.image_tag_latest }}
               
