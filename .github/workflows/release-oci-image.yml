@@ -119,12 +119,12 @@ jobs:
               docker image inspect ${{ needs.generate-release-version.outputs.image_tag }}-${{ runner.arch }}
           -
             name: Push image for ${{ matrix.os }}
-            if: github.event_name == 'tag' && startsWith(github.ref, 'refs/tags/v')
+            if: startsWith(github.ref, 'refs/tags/v')
             run: |
               docker push ${{ needs.generate-release-version.outputs.image_tag }}-${{ runner.arch }}
 
     create-image-release:
-        if: github.event_name == 'tag' && startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v')
         permissions:
             packages: write
             id-token: write
