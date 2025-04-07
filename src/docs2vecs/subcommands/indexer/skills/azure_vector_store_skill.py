@@ -1,5 +1,4 @@
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
 from azure.core.credentials import AzureKeyCredential
 from azure.identity import DefaultAzureCredential
@@ -15,18 +14,34 @@ from docs2vecs.subcommands.indexer.skills.tracker import VectorStoreTracker
 
 
 class AzureVectorStoreSkill(IndexerSkill):
-    def __init__(self, config: dict, global_config: Config, vector_store_tracker: VectorStoreTracker = None):
+    def __init__(
+        self,
+        config: dict,
+        global_config: Config,
+        vector_store_tracker: VectorStoreTracker = None,
+    ):
         super().__init__(config, global_config)
         self._vector_store_tracker = vector_store_tracker
         self._overwrite_index = self._config.get("overwrite_index", False)
 
-        az_credential = AzureKeyCredential(self._config.get("api_key", "")) if self._config.get("api_key", "") else DefaultAzureCredential()
+        az_credential = (
+            AzureKeyCredential(self._config.get("api_key", ""))
+            if self._config.get("api_key", "")
+            else DefaultAzureCredential()
+        )
         self._search_client = SearchClient(
             endpoint=self._config.get("endpoint"),
             index_name=self._config.get("index_name"),
             credential=az_credential,
         )
-        self._index_client = SearchIndexClient(endpoint=self._config.get("endpoint"), credential=az_credential)
+        self._index_client = SearchIndexClient(
+            endpoint=self._config.get("endpoint"), credential=az_credential
+        )
+
+        max_batch_size = 50
+        self._config["batch_size"] = min(
+            max(1, self._config.get("batch_size", max_batch_size)), max_batch_size
+        )
 
     def _upload_embeddings(self, chunks: List[Chunk]):
         field_mapping = self._config.get("field_mapping", {})
@@ -38,10 +53,21 @@ class AzureVectorStoreSkill(IndexerSkill):
         results = []
         if chunks:
             az_ai_search_documents = [
-                {field_mapping[key]: getattr(chunk, key) for key in field_mapping if hasattr(chunk, key)} for chunk in chunks
+                {
+                    field_mapping[key]: getattr(chunk, key)
+                    for key in field_mapping
+                    if hasattr(chunk, key)
+                }
+                for chunk in chunks
             ]
 
-            results = self._search_client.upload_documents(documents=az_ai_search_documents)
+            start_idx = 0
+            batch_size = self._config.get("batch_size")
+
+            while start_idx < len(az_ai_search_documents):
+                batch = az_ai_search_documents[start_idx : start_idx + batch_size]
+                results.extend(self._search_client.upload_documents(documents=batch))
+                start_idx += batch_size
 
         return results
 
@@ -49,10 +75,16 @@ class AzureVectorStoreSkill(IndexerSkill):
         if self._vector_store_tracker:
             self._vector_store_tracker.update_documents(chunks, results)
 
-    def _log_upload_results(self, chunk_id_list: List[str], results: List[IndexingResult]):
+    def _log_upload_results(
+        self, chunk_id_list: List[str], results: List[IndexingResult]
+    ):
         if self.logger:
             res = [
-                {"chunk_id": chunk_id, "succeeded": result.succeeded, "status_code": result.status_code}
+                {
+                    "chunk_id": chunk_id,
+                    "succeeded": result.succeeded,
+                    "status_code": result.status_code,
+                }
                 for chunk_id, result in zip(chunk_id_list, results)
             ]
             self.logger.debug(f"Azure AI Search upload results: {res}")
@@ -65,7 +97,9 @@ class AzureVectorStoreSkill(IndexerSkill):
 
         # First search for all documents
         results = self._search_client.search(
-            search_text="*", select=[key_field], include_total_count=True  # Only get the key field as that's all we need for deletion
+            search_text="*",
+            select=[key_field],
+            include_total_count=True,  # Only get the key field as that's all we need for deletion
         )
 
         # Get all document IDs using the correct key field
@@ -84,7 +118,10 @@ class AzureVectorStoreSkill(IndexerSkill):
         chunks = {}
 
         if self._vector_store_tracker:
-            chunks = {chunk.document_id: chunk for chunk in self._vector_store_tracker.retrieve_failed_documents()}
+            chunks = {
+                chunk.document_id: chunk
+                for chunk in self._vector_store_tracker.retrieve_failed_documents()
+            }
 
         self.logger.debug(f"Going to process {len(input)} documents")
         for doc in input:

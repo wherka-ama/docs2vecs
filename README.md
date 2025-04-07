@@ -12,9 +12,21 @@ For these applications, `docs2vecs` simplifies the entire process:
 The `docs2vecs` project is managed with [uv](https://docs.astral.sh/uv/).
 
 # Usage
-You can use `docs2vecs` in two ways:
-1. Install locally from source - recommended method for now
+You can use `docs2vecs` in three ways:
+1. Install from PyPI
+2. Install locally from source
 2. Run from Docker/Podman image.
+
+## Install from PyPI
+You can install `docs2vecs` from PyPI using pip:
+```sh
+pip install docs2vecs
+```
+or
+```sh
+pip install docs2vecs[all]
+```
+to install all the extra dependencies.
 
 ## Run locally from source
 ```sh
@@ -26,7 +38,11 @@ uv run --directory src docs2vecs --help
 ## Run from Docker image
 
 ```sh
-TODO: add instructions to run docs2vecs using a docker/podman image
+export OCI_ENGINE=podman # or docker
+export DOCS2VECS_VERSION=latest # or a specific version
+${OCI_ENGINE}  run -it --rm \
+    ghcr.io/amadeusitgroup/docs2vecs:latest \
+    --help # or any other valid command that can be run with docs2vecs
 ```
 
 # Documentation
@@ -168,9 +184,17 @@ If you'd like to use a different database to keep track of this, you'll have to 
 
 # Development
 
-To run all the tests run:
+To run tests with pytest:
 
-    tox
+    uv python install 3.11
+    uv sync --all-extras --dev
+    uv run pytest tests
+
+
+It is also possible to use tox::
+    
+    uv pip install tox
+    uv run tox
 
 Note, to combine the coverage data from all the tox environments run:
 
@@ -178,3 +202,13 @@ Note, to combine the coverage data from all the tox environments run:
 | :---    | :---                                |
 | Windows | `set PYTEST_ADDOPTS=--cov-append tox`   |
 | Other   | `PYTEST_ADDOPTS=--cov-append tox`       |
+
+# Releasing
+To release a new version of the package, you can create a pre-release from the main branch using GitHub UI, which will then trigger the release workflow. Alternatively, you can use the `gh` command line tool to create a release:
+
+```bash
+gh release create v[a.b.c] --prerelease --title "Kick starting the release"  --target main
+```
+
+# Contributing
+We welcome contributions to the `docs2vecs` project! If you have an idea for a new feature, bug fix, or improvement, please open an issue or submit a pull request. Before contributing, please read our [contributing guidelines](./CONTRIBUTING.md).

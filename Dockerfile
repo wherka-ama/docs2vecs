@@ -8,7 +8,7 @@ COPY ./etc/ca-bundle.crt /etc/pki/ca-trust/source/anchors/
 COPY ./ /tmp/build
 
 RUN echo "sslverify=0" >> /etc/dnf/dnf.conf \
-    && dnf install -y openssl ca-certificates gcc \
+    && dnf install -y openssl ca-certificates gcc git \
     && if [ "$TARGETPLATFORM" ==  "linux/arm64" ]; then\
         # Creating symlink to /usr/bin/aarch64-linux-gnu-gcc as it is assumed by cython(perhaps worth logging an issue with them)
         ln -sf /usr/bin/gcc /usr/bin/aarch64-linux-gnu-gcc;\
