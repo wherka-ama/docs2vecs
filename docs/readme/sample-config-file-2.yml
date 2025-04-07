@@ -1,42 +1,83 @@
 definitions:
+  - skill: &ScrollWordExporter
+      type: exporter
+      name: scrollword-exporter
+      params:
+        api_url: https://scroll-word.us.exporter.k15t.app/api/public/1/exports
+        auth_token: env.SWE_AUTH_TOKEN
+        poll_interval: 2
+        export_folder: ~/Downloads/sw_export_temp
+        scope: descendants
+        page_urls:
+            - https://confluence-page-url
+        confluence_prefix: https://amadeus.atlassian.net 
+
   - skill: &FileScanner
       type: file-scanner
       name: multi-file-scanner
       params:
-        path: /path/to/files/to/scan/
-        recursive: false
-
+        path: user/directory
+        filter: ["*.txt"]
+        recursive: true
+  
   - skill: &FileReader
       type: file-reader
-      name: multi-file-reader
+      name: multi-file-reader 
+
+  - skill: &TextSplitter
+      type: splitter  
+      name: recursive-character-splitter 
+      params:
+        chunk_size: 1000 
+        overlap: 100 
 
   - skill: &SemanticSplitter
       type: splitter
       name: semantic-splitter
       params:
         embedding_model:
-          endpoint: https://endpoint.openai.azure.com
-          api_key: env.AZURE_EMBEDDING_KEY
-          api_version: "api_version_here"
-          deployment_name: deployment_name_here
+          endpoint: https://resource-name.openai.azure.com/openai/deployments/text-embedding-ada-002/embeddings?api-version=2023-05-15
+          api_key: env.AZURE_EMBEDDING_API_KEY
+          api_version: "2023-05-15"
+          deployment_name: text-embedding-ada-002
 
-  - skill: &FastEmbed
+  - skill: &AzureAda002
       type: embedding
-      name: llama-fastembed
-
-  - skill: &ChromaDbVectorStore
-      type: vector-store
-      name: chromadb
+      name: azure-ada002-embedding
       params:
-        db_path: /path/to/your/Chroma/db
-        collection_name: semantic-split
+        endpoint: https://resource-name.openai.azure.com/openai/deployments/text-embedding-ada-002/embeddings?api-version=2023-05-15
+        api_key: env.AZURE_EMBEDDING_API_KEY
+        api_version: "2023-05-15"
+        deployment_name: text-embedding-ada-002
 
-  - skillset: &MySkillset
+  - skill: &AzureAISearchId
+      type: vector-store
+      name: azure-ai-search
+      params:
+        api_key: env.AZURE_AI_SEARCH_API_KEY
+        endpoint: https://resource-name.search.windows.net
+        index_name: toolchain-index
+        field_mapping:
+          document_id: document_id
+          content: content
+          source_link: source_link
+          document_name: document_name
+          embedding: embedding
+        
+  - skillset: &TestSkillset1
+      - *ScrollWordExporter
+      - *FileReader
+      - *SemanticSplitter
+      - *AzureAda002
+      - *AzureAISearchId
+
+  - skillset: &TestSkillset2
       - *FileScanner
       - *FileReader
       - *SemanticSplitter
-      - *FastEmbed
-      - *ChromaDbVectorStore
+      - *AzureAda002
+      - *AzureAISearchId
 
 indexer:
-  skillset: *MySkillset
+    id: AzureAISearchIndexer
+    skillset: *TestSkillset1
