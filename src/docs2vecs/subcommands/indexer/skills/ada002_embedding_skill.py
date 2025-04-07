@@ -1,5 +1,4 @@
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 
@@ -22,13 +21,25 @@ class AzureAda002EmbeddingSkill(IndexerSkill):
         return embed_model.get_query_embedding(content)
 
     def run(self, input: Optional[List[Document]] = None) -> Optional[List[Document]]:
-        self.logger.info("Running AzureAda002EmbeddingSkill...")
-        self.logger.info(f"Number of documents: {len(input)}")
+        self.logger.info(
+            f"Running Azure Embedding Skill with deployment name: {self._config['deployment_name']}..."
+        )
+
+        docs_count = len(input)
+        chunks_count = sum(len(doc.chunks) for doc in input)
+
+        self.logger.info(
+            f"Processing a total of documents: {docs_count}. Total number of chunks: {chunks_count}"
+        )
 
         for doc in input:
             self.logger.debug(f"Processing document: {doc.filename}")
             for chunk in doc.chunks:
                 self.logger.debug(f"Creating embedding for chunk: {chunk.chunk_id}")
-                chunk.embedding = "" if not chunk.content else self.az_ada002_embeddings(chunk.content)
+                chunk.embedding = (
+                    ""
+                    if not chunk.content
+                    else self.az_ada002_embeddings(chunk.content)
+                )
 
         return input
