@@ -72,11 +72,12 @@ Example:
 uv run --directory src docs2vecs indexer --config ~/Downloads/sw_export_temp/config/confluence_process.yml --env ~/indexer.env
 ```
 
-Please check the [detailed skills documentation](docs/readme/indexer-skills.md).
+**Please check the [detailed skills documentation](docs/readme/indexer-skills.md).**
 
 The config yaml file is validated against [this schema](./src/docs2vecs/subcommands/indexer/config/config_schema.yaml).
 
-Please check this [sample config file](docs/readme/sample-config-file.yml).
+Please check [sample config file 1](docs/readme/sample-config-file-1.yml), [sample config file 2](docs/readme/sample-config-file-2.yml) for your reference.
+
 </details>
 
 <details><summary>Expand me if you would like to find out how to chat with your data</summary>
@@ -164,6 +165,8 @@ integrated_vec:
 Please note that **api keys** should **NOT** be stored in config files, and should **NOT** be added to `git`. Therefore, if you build your config file, use the `env.` prefix for `api_key` parameter. For example: `api_key: env.AZURE_AI_SEARCH_API_KEY`.
 
 Make sure you export the environment variables before you run the indexer. For convenience you can use the `--env` argument to supply your own `.env` file.
+
+Generate and use Scroll Word Exporter API tokens from the Personal Settings section of your Confluence profile.
 
 ## Experimental features
 <details><summary>Tracker</summary>
