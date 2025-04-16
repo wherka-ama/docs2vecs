@@ -29,7 +29,7 @@ class ChromaDBVectorStoreSkill(IndexerSkill):
                 ids=[chunk.chunk_id for chunk in doc.chunks],
                 embeddings=[chunk.embedding for chunk in doc.chunks],
                 documents=[chunk.content for chunk in doc.chunks],
-                metadatas=[{"source": chunk.source_link} for chunk in doc.chunks],
+                metadatas=[{"source": chunk.source_link, "tags": doc.tag} for chunk in doc.chunks],
             )
 
         return input

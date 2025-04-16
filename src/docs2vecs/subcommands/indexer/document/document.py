@@ -2,9 +2,10 @@ from docs2vecs.subcommands.indexer.document import Chunk
 
 
 class Document:
-    def __init__(self, filename: str, source_url: str = "", text: str = ""):
+    def __init__(self, filename: str, source_url: str = "", tag: str = "", text: str = ""):
         self.filename: str = filename
         self.source_url: str = source_url
+        self.tag = tag
         self.text: str = text
         self.chunks: set[Chunk] = set()
 
